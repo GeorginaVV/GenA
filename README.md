@@ -4,7 +4,7 @@ Script done for my thesis.
 Script compares translated assembled genomes in fasta format to the selected database.
 
 # The databases are:.
-Housekeeping Genes according to Gil 2004
+Housekeeping Genes according to Gil 2004.
 
 Housekeeping Genes in the Vibrionaceae family.
 
