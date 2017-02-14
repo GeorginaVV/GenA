@@ -1,0 +1,156 @@
+#!/usr/bin/perl
+# Author Gina Varela, Laboratorio de Genomica Microbiana, CIAD.
+# Dependencies: prodigal, prokka, blastp, bioperl
+
+use strict;
+use warnings;
+
+#Selection of files-----------------------------------------------------------------------------------------
+print "\n";
+print "\n";
+print "This script needs a fasta file with the contigs of an assembled genome.\n";
+print "The script will annotate it, and compare it with the desired database.\n";
+print "\n";
+my @fastafiles = ();
+if (@ARGV) {
+print "\n";
+print "These are the files the script will work with:\n";
+print "\n";
+foreach my $file (@ARGV){
+print $file,"\n";
+push @fastafiles, $file;
+}
+}
+else {
+print "Make sure these are the fasta files you want to process.\n";
+print "\n";
+print "--------------------------------------\n";
+foreach my $file ( glob ("*.fasta") ) {	
+	print $file,"\n";
+	push @fastafiles, $file;
+}
+print "--------------------------------------\n";
+print "\n";
+print "Are these the correct files? (y/n)\n";
+my $response = <STDIN>;
+  	if($response =~  /^[Y]?$/i) {
+		print "\n";
+		print "\n";
+   } 
+	elsif($response =~ /^[N]?$/i) {
+		print "\n";
+		print "Check your fasta files for errors.\n";
+		exit 0
+}
+}
+#Annotation-------------------------------------------------------------------------------------------------
+print "\n";
+print "\n";
+print "The script will annotate the genomes.\n";
+print "Do not close the terminal window.\n";
+	foreach my $files (@fastafiles) {
+	my @cmd = "prodigal -a $files.faa -d $files.fna -i $files -q > output.txt";
+	system(@cmd);
+	print "\n";
+	print "\n";
+	print "working in file\n", $files;
+	print "\n";
+	my $fa = substr($files,0,-6);
+		rename ("$files.faa", "$fa.faa") || die ("Error in renaming");
+		rename ("$files.fna", "$fa.fna") || die ("Error in renaming");
+	my $removeme = 'output.txt';
+	my $num_removed = unlink $removeme;
+	print "$num_removed files are being processed\n";
+}
+print "\n";
+print "The annotation is done.\n";
+print "\n";
+
+#Comparison with the Database of choice (Blastp)------------------------------------------------------------
+print "\n";
+print "Working with the files\n";
+print "Don't close the terminal\n";
+print "\n";
+print "\n";
+my @proteinquery = ( glob ("*.faa") );
+	print "Comparing to the Housekeenping Genes Database.\n";
+	foreach my $query (@proteinquery) {
+		my $qa = substr($query,0,-4);
+		my @cmd = "blastp -db /opt/ncbi_blast/db/HG/HousekeepingGenes -query $query -out HG$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";		
+		system(@cmd);
+		rename ("HG$query.tab", "$qa.tab") || die ("Error in renaming");
+}
+
+#Get the best query of the bunch (blastp)-------------------------------------------------------------------
+print "\n";
+print "\n";
+print "looking for the best matches of the query\n";
+print "\n";
+print "\n";
+
+my @tabquery = ( glob ("*.tab") );
+foreach my $qa (@tabquery) {
+	my @sorteocmd = "awk '{print \$1, \$2, \$3}' $qa | sort -k 3 -n -r -o sorted$qa";
+	system(@sorteocmd);
+	rename ("sorted$qa", "$qa") || die ("Error in renaming");
+	my @eleccioncmd = "awk '{if(! a[\$2]){print; a[\$2]++}}' $qa > sorted$qa";
+	system(@eleccioncmd);
+	rename ("sorted$qa", "$qa") || die ("Error in renaming");
+	my $qac = substr($qa,0,-4);
+	my @contigcmd = "awk '{print \$1}' $qa > contigs_$qac.txt | awk '{print \$1, \$2}' $qa > names_$qac.tab"; 
+	system(@contigcmd);
+}
+#Let's go look for the Nucleotide Sequences-----------------------------------------------------------------
+print "Looking for the nucleotides in the fna file\n";
+print "\n";
+print "\n";
+foreach my $file ( glob ("*.fna") ) {	
+ 	my $fa = substr($file,0,-4);
+	my $filename = ("contigs_$fa.txt");
+	open (my $fh, $filename)
+	or die "Can't open file '$filename";
+	while (my $row = <$fh>) {
+		chomp $row;
+		my @cmd = "samtools faidx $file $row > $row.fa";
+		system(@cmd);
+		print "$row\n";
+}
+	my @cmd = "touch Processed_$fa.txt | cat *.fa >> Processed_$fa.txt";
+	system(@cmd);
+
+#Changing the Names in the Processed file-------------------------------------------------------------------
+use Bio::SeqIO;
+
+foreach my $sequence ( glob ("*.fna") ) {
+	
+	my $seq = substr ($sequence,0,-4);
+	my $seqname = "names_$seq.tab";
+
+	open (my $processedfile, '>', "Processed_$seq.fasta");	
+
+	open (my $sh, $seqname) or die "Can't open file '$seqname";
+	my %annot = map { /(\S+)\s+(.+)/; $1 => $2 } <$sh>;
+	close $sh;
+	my $processedseq = "Processed_$seq.txt";
+	my $in = Bio::SeqIO->new( -file => $processedseq , -format => 'Fasta' );
+	while ( my $seq = $in->next_seq() ) {
+    	my $seqID = $annot{ $seq->id } // $seq->id;
+    	print $processedfile ">","$seqID\n" . $seq->seq . "\n";
+	}
+	close $processedfile;	
+}
+
+#Outputs and final answers----------------------------------------------------------------------------------
+	my @removecmd = "rm *.fa *.fai contigs_$fa.txt $fa.tab names_$fa.tab Processed_$fa.txt";
+	system (@removecmd);
+}
+print "\n";
+print "\n";
+print "The script has compared the genomes to the desired database.\n";
+print "\n";
+print "\n";
+foreach my $file ( glob ("*.fna") ) {
+my $fa = substr($file,0,-4);
+print "The output of ", $fa,".fasta can be found in Processed_",$fa,".fasta.\n";
+print "\n";
+}
