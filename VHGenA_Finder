@@ -96,7 +96,6 @@ foreach my $qa (@tabquery) {
 	my @eleccioncmd = "awk '{if(! a[\$2]){print; a[\$2]++}}' $qa > sorted$qa";
 	system(@eleccioncmd);
 	rename ("sorted$qa", "$qa") || die ("Error in renaming");
-	my $qac = substr($qa,0,-4);
 	my @contigcmd = "awk '{print \$1}' $qa > contigs_$qac.txt | awk '{print \$1, \$2}' $qa > names_$qac.tab"; 
 	system(@contigcmd);
 }
