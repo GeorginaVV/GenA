@@ -5,10 +5,6 @@ This translates and compares assembled genomes in fasta format to the selected d
 
 Each database has its own quick and direct script.
 
-Usage for quick scripts:
-
-  script file.fasta
-
 #Databases
   -Housekeeping Genes according to Gil 2004.
 
