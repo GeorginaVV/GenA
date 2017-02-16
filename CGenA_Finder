@@ -73,9 +73,6 @@ foreach my $files (@fastafiles) {
 		rename ("$files.faa", "$fa.faa") || die ("Error in renaming");
 		rename ("$files.fna", "$fa.fna") || die ("Error in renaming");
 	
-print "Database: \n";
-print "	",@databasechoice,"\n";
-print "\n";
 print "The script will annotate the genomes.\n";
 print "Do not close the terminal window.\n";
 	foreach my $files (@fastafiles) {
@@ -106,7 +103,7 @@ foreach my $qa (@tabquery) {
 	my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
 	system(@eleccioncmd);
 	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
-	my $qac = substr($qa,0,-4);
+
 	my @contigcmd = "awk '{print \$1}' $qac.tab > contigs_$qac.txt | awk '{print \$1, \$2}' $qac.tab > names_$qac.tab"; 
 	system(@contigcmd);
 }
