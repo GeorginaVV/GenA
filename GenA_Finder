@@ -177,7 +177,6 @@ foreach my $qa (@tabquery) {
 	my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
 	system(@eleccioncmd);
 	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
-	my $qac = substr($qa,0,-4);
 	my @contigcmd = "awk '{print \$1}' $qac.tab > contigs_$qac.txt | awk '{print \$1, \$2}' $qac.tab > names_$qac.tab"; 
 	system(@contigcmd);
 }
