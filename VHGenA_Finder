@@ -105,7 +105,7 @@ print "\n";
 print "\n";
 foreach my $file ( glob ("*.fna") ) {	
  	my $fa = substr($file,0,-4);
-	my $filename = ("contigs_$fa.txt");
+	my $filename = ("contigs_$fa.tab");
 	open (my $fh, $filename)
 	or die "Can't open file '$filename";
 	while (my $row = <$fh>) {
