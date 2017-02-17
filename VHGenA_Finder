@@ -73,12 +73,12 @@ print "Don't close the terminal\n";
 print "\n";
 print "\n";
 my @proteinquery = ( glob ("*.faa") );
-	print "Comparing to the Housekeeping Genes of the Vibrionaceae family.\n";
+	print "Comparing to the MLSA scheme for the Vibrionaceae family.\n";
 	foreach my $query (@proteinquery) {
 		my $qa = substr($query,0,-4);
-		my @cmd = "blastp -db /opt/ncbi_blast/db/HGV/HGV -query $query -out HG$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";		
+		my @cmd = "blastp -db /opt/ncbi_blast/db/MLSA/MLSA -query $query -out MLSA$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";		
 		system(@cmd);
-		rename ("HG$query.tab", "$qa.tab") || die ("Error in renaming");
+		rename ("MLSA$query.tab", "$qa.tab") || die ("Error in renaming");
 }
 
 #Get the best query of the bunch (blastp)-------------------------------------------------------------------
