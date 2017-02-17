@@ -51,9 +51,6 @@ else {
 	print "Are these the correct files? (y/n)\n";
 	my $response = <STDIN>;
 	  	if($response =~  /^[Y]?$/i) {
-			print "\n";
-			print "\n";
-			print "Choose your database:\n";
 } 
 		elsif($response =~ /^[N]?$/i) {
 			print "\n";
