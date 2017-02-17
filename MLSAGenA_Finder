@@ -52,8 +52,7 @@ else {
 	my $response = <STDIN>;
 	  	if($response =~  /^[Y]?$/i) {
 			print "\n";
-			print "\n";
-			print "Choose your database:\n";
+			print "\n"
 } 
 		elsif($response =~ /^[N]?$/i) {
 			print "\n";
