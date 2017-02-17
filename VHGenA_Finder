@@ -96,7 +96,7 @@ foreach my $qa (@tabquery) {
 	my @eleccioncmd = "awk '{if(! a[\$2]){print; a[\$2]++}}' $qa > sorted$qa";
 	system(@eleccioncmd);
 	rename ("sorted$qa", "$qa") || die ("Error in renaming");
-	my @contigcmd = "awk '{print \$1}' $qa > contigs_$qa.tab | awk '{print \$1, \$2}' $qa > names_$qa.tab"; 
+	my @contigcmd = "awk '{print \$1}' $qa > contigs_$qa | awk '{print \$1, \$2}' $qa > names_$qa"; 
 	system(@contigcmd);
 }
 #Let's go look for the Nucleotide Sequences-----------------------------------------------------------------
