@@ -78,7 +78,7 @@ my @proteinquery = ( glob ("*.faa") );
 		my $qa = substr($query,0,-4);
 		my @cmd = "blastp -db /opt/ncbi_blast/db/HGV/HGV -query $query -out HG$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";		
 		system(@cmd);
-		rename ("CG$query.tab", "$qa.tab") || die ("Error in renaming");
+		rename ("HG$query.tab", "$qa.tab") || die ("Error in renaming");
 }
 
 #Get the best query of the bunch (blastp)-------------------------------------------------------------------
