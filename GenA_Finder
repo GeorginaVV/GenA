@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 # Author Gina Varela, Laboratorio de Genomica Microbiana, CIAD.
+#Version 1.0
 # Dependencies: prodigal, blastp, samtools, bioperl
 
 use strict;
@@ -9,7 +10,7 @@ use Getopt::Std;
 #Options and flags--------------------------------------------------------------------------------------------
 
 my %options=();
-getopts("hq:d:", \%options);
+getopts("hq:d:v", \%options);
 
 my $HELP = ( 
 "USAGE
@@ -19,7 +20,11 @@ This script uses assembled fasta sequences as input file.
 If you want to use a personal database, you must declare the path to the database.
 The script will ask for the desired database if not declared.\n
 \n");
+my $Version = ( 
+"This version is 1.0 \n
+\n");
 print "$HELP"; exit 0 if defined $options{h};
+print "$Version" if defined $options{v};
 my $file = ("$options{q}") if defined $options{q};
 my $db = ("$options{d}") if defined $options{d};
 
