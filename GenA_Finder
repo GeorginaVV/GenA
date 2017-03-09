@@ -1,35 +1,34 @@
 #!/usr/bin/perl
+#GenA_Finder version 1.2
 # Author Gina Varela, Laboratorio de Genomica Microbiana, CIAD.
-#Version 1.0
-# Dependencies: prodigal, blastp, samtools, bioperl
+# Dependencies: prodigal, blastp, samtools, bioperl, vsearch
 
 use strict;
 use warnings;
 use Getopt::Std;
 
-#Options and flags--------------------------------------------------------------------------------------------
+#Options stuff-------------------------------------------------------------------------------------------
 
 my %options=();
-getopts("hq:d:v", \%options);
+getopts("hq:vd:", \%options);
 
 my $HELP = ( 
 "USAGE
-   script [-h] [-q FILENAME] [-d PATH TO DATABASE] \n
+   script [-h] [-q FILENAME] [-v USE VSEARCH] [-d PATH TO DATABASE] \n
 -----------------------------------------------------------
 This script uses assembled fasta sequences as input file.
 If you want to use a personal database, you must declare the path to the database.
 The script will ask for the desired database if not declared.\n
+The Script will use blastp for default, if -v option is not declared.\n
 \n");
-my $Version = ( 
-"This version is 1.0 \n
-\n");
-print "$HELP"; exit 0 if defined $options{h};
-print "$Version" if defined $options{v};
+print "$HELP" if defined $options{h};
+exit 0 if defined $options{h};
+my $search = ();
+	$search = ("vsearch") if defined $options{v};
+	$search = ("blastp" ) if not defined $options{v};
 my $file = ("$options{q}") if defined $options{q};
-my $db = ("$options{d}") if defined $options{d};
 
-#Selection of files-----------------------------------------------------------------------------------------
-print "\n";
+#Selection of files--------------------------------------------------------------------------------------
 print "\n";
 print "This script needs a fasta file with the contigs of an assembled genome.\n";
 print "The script will annotate it, and compare it with the desired database.\n";
@@ -58,120 +57,128 @@ else {
 	  	if($response =~  /^[Y]?$/i) {
 			print "\n";
 			print "\n";
-			print "Choose your database:\n";
 } 
 		elsif($response =~ /^[N]?$/i) {
 			print "\n";
 			print "Check your fasta files for errors.\n";
 			exit 0
-}
-}
+}}
 #Selection of Database-----------------------------------------------------------------------------------
-my @databasechoice = ();
-if ($db) {
-print "This is the database the script will be working with:\n";
-print $db,"\n";
-print "\n";
-push @databasechoice, $db;
+my @pathtodb = ();
+my $pdb = ("$options{d}") if defined $options{d};
+if ($pdb) {
+	print "This is the path of the database the script will be working with:\n";
+	print $pdb,"\n";
+	print "\n";
+	push @pathtodb, $pdb;
 } 
 else {
-sub menu 
- {
-        for (;;) {
-            print "--------------------\n";
-            print "$_[0]\n";
-            print "--------------------\n";
-            for (my $i = 0; $i < scalar(@{ $_[1]}); $i++) {
-                print $i + 1, "\.\t ${ $_[1] }[$i]\n";
-            }
-            print "\n?: ";
-            my $i = <STDIN>; chomp $i;
-            if ($i && $i =~ m/[0-9]+/ && $i <= scalar(@{ $_[1]})) {
-                return ${ $_[1] }[$i - 1];
-            } else {
-                print "\nInvalid input.\n\n";
-            }
-        }
-    }
-
+			print "Choose your database:\n";
+	sub menu {
+		for (;;) {
+			print "--------------------\n";
+			print "$_[0]\n";
+			print "--------------------\n";
+			for (my $i = 0; $i < scalar(@{ $_[1]}); $i++) {
+				print $i + 1, "\.\t ${ $_[1] }[$i]\n";
+			}
+			print "\n?: ";
+			my $i = <STDIN>; chomp $i;
+			if ($i && $i =~ m/[0-9]+/ && $i <= scalar(@{ $_[1]})) {
+				return ${ $_[1] }[$i - 1];
+			}
+			else {
+				print "\nInvalid input.\n\n";
+			}
+		}
+	}
 	my @databases = ("Housekeeping Genes according to Gil","Core Genome of the Vibrionaceae Family","Housekeeping genes of the Vibrionaceae Family","MLSA scheme");
     	my $db = menu('Database Options', \@databases);
-
-push @databasechoice, $db;
 print "\n";
+	if ($db eq "MLSA scheme"){
+		if ($search eq "vsearch"){
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/MLSA/MLSA_nucleotides";
+		}
+		else{
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/MLSA/MLSA";
+		}
+	}
+	elsif ($db eq "Housekeeping genes according to Gil"){
+		if ($search eq "vsearch"){
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/HG/HG_nucleotides";
+		}
+		else{
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/HG/HG";
+		}
+	}
+	elsif ($db eq "Core Genome of the Vibrionaceae Family"){
+		if ($search eq "vsearch"){
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/CoreGenes/CG_nucleotides";
+		}
+		else{
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/CoreGenes/CoreGenes";
+		}
+	}
+	elsif ($db eq "Housekeeping genes of the Vibrionaceae Family"){
+		if ($search eq "vsearch"){
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/HGV/HGV_nucleotides";
+		}
+		else{
+			print "The database: ", $db," has been chosen\n";
+			push @pathtodb, "~/GenA/HGV/HGV";
+		}
+	}
 }
+	
 #Annotation-------------------------------------------------------------------------------------------------
 foreach my $files (@fastafiles) {
+	print "Prodigal is doing the annotation with:\n";
+	print "		", $files,"\n";	
 	my @cmd = "prodigal -a $files.faa -d $files.fna -i $files -q > output.txt";
 	system(@cmd);
-	print "\n";
-	print "working in file:  \n", $files;
 	print "\n";
 	my $fa = substr($files,0,-6);
 		rename ("$files.faa", "$fa.faa") || die ("Error in renaming");
 		rename ("$files.fna", "$fa.fna") || die ("Error in renaming");
-	
-print "Database: \n";
-print "	",@databasechoice,"\n";
-print "\n";
-print "The script will annotate the genomes.\n";
-print "Do not close the terminal window.\n";
-	foreach my $files (@fastafiles) {
-		print "working with ", $files, "\n";
 }
 print "\n";
 print "The annotation is done.\n";
-#Comparison with the Database of choice --------------------------------------------------------------------
 print "Don't close the terminal\n";
 print "\n";
-my @proteinquery = ( glob ("*.faa") );
-foreach my $db (@databasechoice) {
-if ($db eq "MLSA scheme") { 
-	print "Comparing to the MLSA scheme for the Vibrionaceae family database.\n";
-	foreach my $query (@proteinquery) {
-		print "comparing ",$query," to the database.\n";
-		my $qa = substr($query,0,-4);
-		my @cmd = "blastp -db ~/GenA/MLSA/MLSA -query $query -out MLSA$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";
-		system(@cmd);
-		rename ("MLSA$query.tab", "$qa.tab") || die ("Error in renaming");
-}
-}
-elsif ($db eq "Housekeeping Genes according to Gil") { 
-	print "Comparing to the Housekeenping Genes Database.\n";
-	foreach my $query (@proteinquery) {
-		print "comparing ",$query," to the database.\n";		
-		my $qa = substr($query,0,-4);
-		my @cmd = "blastp -db ~/GenA/HG/HG -query $query -out HG$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";		
-		system(@cmd);
-		rename ("HG$query.tab", "$qa.tab") || die ("Error in renaming");
-}
-}
-elsif ($db eq "Core Genome of the Vibrionaceae Family") {
-	print "Comparing to the Core Genome of the Vibrionaceae family database.\n";
-	foreach my $query (@proteinquery) {
-		print "comparing ",$query," to the database.\n";		
-		my $qa = substr($query,0,-4);
-		my @cmd = "blastp -db ~/GenA/CoreGenes/CoreGenes -query $query -out CG$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";
-		system(@cmd);
-		rename ("CG$query.tab", "$qa.tab") || die ("Error in renaming");
-}
-}
-elsif ($db eq "Housekeeping genes of the Vibrionaceae Family" ) { 
-	print "Comparing to the Housekeeping genes of the Vibrionaceae family database.\n";
-	
-}
-else {
-	print "Comparing to personal database.\n";
-	foreach my $query (@proteinquery) {
-		print "comparing ",$query," to the database.\n";		
-		my $qa = substr($query,0,-4);
-		my @cmd = "blastp -db ~/GenA/HGV/HGV -query $query -out HGV$query.tab -evalue 1e-5 -outfmt 6 -num_threads 5";
-		system(@cmd);
-		rename ("HGV$query.tab", "$qa.tab") || die ("Error in renaming");
-}
-}
-}
-#Getting the best query of the bunch ---------------------------------------------------------------------------
+#Comparison with the Database of choice -------------------------------------------------
+my @proteinquery = (glob ("*.faa"));
+foreach my $query (@proteinquery) {
+	print "comparing ",$query," to the database.\n";
+	my $qa = substr($query,0,-4);
+	foreach my $path (@pathtodb){
+		my @vsearch =( "vsearch --usearch_global $qa.fna -blast6out $qa.tab -db $path --id 0.2 --threads 4" );
+		my @blastp = ( "blastp -db $path -query $query -out $qa.tab -evalue 1e-5 -outfmt 6 -num_threads 5" );
+			system(@vsearch) if defined $options{v};
+			system(@blastp) if not defined $options{v};
+}}
+
+#Get the best query of the bunch ------------------------------------------------------------------------
+print "looking for the best matches of the query\n";
+print "\n";
+#Let's go look for the Nucleotide Sequences--------------------------------------------------------------
+print "Looking for the nucleotides in the fna file\n";
+print "\n";
+#Outputs and final answers-------------------------------------------------------------------------------
+print "\n";
+print "The script has compared the genomes to the desired database.\n";
+print "\n";
+foreach my $file ( glob ("*.fasta") ) {
+my $fa = substr($file,0,-6);
+print "The output of ", $fa,".fasta can be found in Processed_",$fa,".fasta.\n";
+print "\n";
+}#Get the best query of the bunch ---------------------------------------------------------------------------
 print "looking for the best matches of the query\n";
 my @tabquery = ( glob ("*.fna") );
 foreach my $qa (@tabquery) {
@@ -182,14 +189,14 @@ foreach my $qa (@tabquery) {
 	my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
 	system(@eleccioncmd);
 	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
-	my @contigcmd = "awk '{print \$1}' $qac.tab > contigs_$qac.txt | awk '{print \$1, \$2}' $qac.tab > names_$qac.tab"; 
+	my @contigcmd = "awk '{print \$1}' $qac.tab > contigs_$qac.tab | awk '{print \$1, \$2}' $qac.tab > names_$qac.tab"; 
 	system(@contigcmd);
 }
-#Looking for the Nucleotide Sequences-----------------------------------------------------------------
+#Let's go look for the Nucleotide Sequences-----------------------------------------------------------------
 print "Looking for the nucleotides in the fna file\n";
 foreach my $file ( glob ("*.fna") ) {	
  	my $fa = substr($file,0,-4);
-	my $filename = ("contigs_$fa.txt");
+	my $filename = ("contigs_$fa.tab");
 	open (my $fh, $filename)
 	or die "Can't open file '$filename";
 	while (my $row = <$fh>) {
@@ -219,7 +226,7 @@ use Bio::SeqIO;
 }
 
 #Outputs and final answers----------------------------------------------------------------------------------
-	my @removecmd = "rm *.fa *.fai sequences_$fa.txt sequences_$fa.fasta contigs_$fa.txt names_$fa.tab";
+	my @removecmd = "rm *.fa *.fai *.txt sequences_$fa.fasta contigs_$fa.tab names_$fa.tab";
 	system (@removecmd);
 }
 print "\n";
@@ -229,4 +236,6 @@ foreach my $file ( glob ("*.fna") ) {
 my $fa = substr($file,0,-4);
 print "The output of ", $fa,".fasta can be found in Processed_",$fa,".fasta.\n";
 print "\n";
-}}
+print "The identity score is in ", $fa,".tab.\n";
+print "\n";
+}
