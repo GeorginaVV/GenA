@@ -1,7 +1,7 @@
 # GenA_Finder
 Script done for my thesis.
 
-Version 1.0
+Version 1.2
 This translates and compares assembled genomes in fasta format to the selected database.
 
 Each database has its own quick and direct script, that has blastp has default.
