@@ -1,3 +1,4 @@
+
 #!/usr/bin/perl
 #GenA_Finder version 1.2
 # Author Gina Varela, Laboratorio de Genomica Microbiana, CIAD.
@@ -27,6 +28,7 @@ my $search = ();
 	$search = ("vsearch") if defined $options{v};
 	$search = ("blastp" ) if not defined $options{v};
 my $file = ("$options{q}") if defined $options{q};
+my @tag = ();
 
 #Selection of files--------------------------------------------------------------------------------------
 print "\n";
@@ -96,6 +98,7 @@ else {
     	my $db = menu('Database Options', \@databases);
 print "\n";
 	if ($db eq "MLSA scheme"){
+		push @tag, "MLSA"; 
 		if ($search eq "vsearch"){
 			print "The database: ", $db," has been chosen\n";
 			push @pathtodb, "~/GenA/MLSA/MLSA_nucleotides";
@@ -103,9 +106,11 @@ print "\n";
 		else{
 			print "The database: ", $db," has been chosen\n";
 			push @pathtodb, "~/GenA/MLSA/MLSA";
+			
 		}
 	}
 	elsif ($db eq "Housekeeping genes according to Gil"){
+		push @tag, "HG"; 
 		if ($search eq "vsearch"){
 			print "The database: ", $db," has been chosen\n";
 			push @pathtodb, "~/GenA/HG/HG_nucleotides";
@@ -116,6 +121,7 @@ print "\n";
 		}
 	}
 	elsif ($db eq "Core Genome of the Vibrionaceae Family"){
+		push @tag, "CGV"; 
 		if ($search eq "vsearch"){
 			print "The database: ", $db," has been chosen\n";
 			push @pathtodb, "~/GenA/CoreGenes/CG_nucleotides";
@@ -126,6 +132,7 @@ print "\n";
 		}
 	}
 	elsif ($db eq "Housekeeping genes of the Vibrionaceae Family"){
+		push @tag, "HGV"; 
 		if ($search eq "vsearch"){
 			print "The database: ", $db," has been chosen\n";
 			push @pathtodb, "~/GenA/HGV/HGV_nucleotides";
@@ -164,21 +171,7 @@ foreach my $query (@proteinquery) {
 			system(@blastp) if not defined $options{v};
 }}
 
-#Get the best query of the bunch ------------------------------------------------------------------------
-print "looking for the best matches of the query\n";
-print "\n";
-#Let's go look for the Nucleotide Sequences--------------------------------------------------------------
-print "Looking for the nucleotides in the fna file\n";
-print "\n";
-#Outputs and final answers-------------------------------------------------------------------------------
-print "\n";
-print "The script has compared the genomes to the desired database.\n";
-print "\n";
-foreach my $file ( glob ("*.fasta") ) {
-my $fa = substr($file,0,-6);
-print "The output of ", $fa,".fasta can be found in Processed_",$fa,".fasta.\n";
-print "\n";
-}#Get the best query of the bunch ---------------------------------------------------------------------------
+#Get the best query of the bunch ---------------------------------------------------------------------------
 print "looking for the best matches of the query\n";
 my @tabquery = ( glob ("*.fna") );
 foreach my $qa (@tabquery) {
@@ -234,8 +227,10 @@ print "The script has compared the genomes to the desired database.\n";
 print "\n";
 foreach my $file ( glob ("*.fna") ) {
 my $fa = substr($file,0,-4);
-print "The output of ", $fa,".fasta can be found in Processed_",$fa,".fasta.\n";
+	foreach my $tag (@tag) {
+		rename ("Processed_$fa.fasta", "$tag$fa.fasta");
+print "The output of ", $fa,".fasta can be found in ",$tag,$fa,".fasta.\n";
 print "\n";
 print "The identity score is in ", $fa,".tab.\n";
 print "\n";
-}
+}}
