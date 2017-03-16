@@ -93,7 +93,7 @@ else {
 			}
 		}
 	}
-	my @databases = ("Housekeeping Genes according to Gil","Core Genome of the Vibrionaceae Family","Housekeeping genes of the Vibrionaceae Family","MLSA scheme");
+	my @databases = ("Housekeeping genes according to Gil","Core Genome of the Vibrionaceae Family","Housekeeping genes of the Vibrionaceae Family","MLSA scheme");
     	my $db = menu('Database Options', \@databases);
 print "\n";
 	if ($db eq "MLSA scheme"){
