@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #GenA_Finder version 1.2
 # Author Gina Varela, Laboratorio de Genomica Microbiana, CIAD.
-# Dependencies: prodigal, blastp, samtools, bioperl, vsearch
+# Dependencies: prodigal, blastp, samtools, vsearch (optional)
 
 use strict;
 use warnings;
