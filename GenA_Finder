@@ -155,7 +155,7 @@ foreach my $files (@fastafiles) {
 		rename ("$files.fna", "$fa.fna") || die ("Error in renaming");
 }
 print "\n";
-print "The annotation is done.\n";
+print "Prodigal is done.\n";
 print "Don't close the terminal\n";
 print "\n";
 #Comparison with the Database of choice -------------------------------------------------
