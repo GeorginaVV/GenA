@@ -143,9 +143,9 @@ print "\n";
 	}
 }
 	
-#Annotation-------------------------------------------------------------------------------------------------
+#Searching ORFs with prodigal-------------------------------------------------------------------------------------------------
 foreach my $files (@fastafiles) {
-	print "Prodigal is doing the annotation with:\n";
+	print "Prodigal is searching with:\n";
 	print "		", $files,"\n";	
 	my @cmd = "prodigal -a $files.faa -d $files.fna -i $files -q > output.txt";
 	system(@cmd);
