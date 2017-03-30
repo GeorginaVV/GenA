@@ -142,10 +142,9 @@ print "\n";
 		}
 	}
 }
-	
-#Searching ORFs with prodigal-------------------------------------------------------------------------------------------------
+#Searching with Prodigal-------------------------------------------------------------------------------------------------
 foreach my $files (@fastafiles) {
-	print "Prodigal is searching with:\n";
+	print "Prodigal is working with:\n";
 	print "		", $files,"\n";	
 	my @cmd = "prodigal -a $files.faa -d $files.fna -i $files -q > output.txt";
 	system(@cmd);
@@ -158,7 +157,7 @@ print "\n";
 print "Prodigal is done.\n";
 print "Don't close the terminal\n";
 print "\n";
-#Comparison with the Database of choice -------------------------------------------------
+#Comparison with the Database of choice --------------------------------------------------------------------
 my @proteinquery = (glob ("*.faa"));
 foreach my $query (@proteinquery) {
 	print "comparing ",$query," to the database.\n";
@@ -171,54 +170,47 @@ foreach my $query (@proteinquery) {
 }}
 
 #Get the best query of the bunch ---------------------------------------------------------------------------
-print "looking for the best matches of the query\n";
+print "looking for the best matches of the query.\n";
 my @tabquery = ( glob ("*.fna") );
 foreach my $qa (@tabquery) {
-	my $qac = substr ($qa,0,-4);
-	my @sorteocmd = "awk '{print \$1, \$2, \$3}' $qac.tab | sort -k 3 -n -r -o sorted$qac";
-	system(@sorteocmd);
-	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
-	my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
+		my $qac = substr ($qa,0,-4);
+		my @sorteocmd = "awk '{print \$1, \$2, \$3}' $qac.tab | sort -k 3 -n -r -o sorted$qac";
+		system(@sorteocmd);
+		rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
+		my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
 	system(@eleccioncmd);
 	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
 	my @contigcmd = "awk '{print \$1}' $qac.tab > contigs_$qac.tab | awk '{print \$1, \$2}' $qac.tab > names_$qac.tab"; 
 	system(@contigcmd);
-}
-#Let's go look for the Nucleotide Sequences-----------------------------------------------------------------
-print "Looking for the nucleotides in the fna file\n";
-foreach my $file ( glob ("*.fna") ) {	
- 	my $fa = substr($file,0,-4);
-	my $filename = ("contigs_$fa.tab");
+	print "looking for the nucleotide sequences in $qac fna file.\n";
+	my $filename = ("contigs_$qac.tab");
 	open (my $fh, $filename)
 	or die "Can't open file '$filename";
-	while (my $row = <$fh>) {
-		chomp $row;
-		my @cmd = "samtools faidx $file $row > $row.fa";
-		system(@cmd);
-	my @processed = "touch sequences_$fa.txt | cat *.fa >> sequences_$fa.txt";
-	system(@processed);
-	
-#Changing the Names in the Processed file-------------------------------------------------------------------
-use Bio::SeqIO;
-	
-	my $seqname = "names_$fa.tab";
-	open (my $processedfile, '>', "sequences_$fa.fasta");	
+		while (my $row = <$fh>) {
+			chomp $row;
+		my @cmd = "fastagrep.pl $row $qac.fna > $row.fa";
+			system(@cmd); }
+	my @processed = "touch sequences_$qac.tab | cat *.fa >> sequences_$qac.tab";
+		system(@processed);
+#Changing the Names in the Processed file------------------------------------------------------------------
+	my $seqname = "names_$qac.tab";
+	open (my $processedfile, '>', "sequences_$qac.fasta");	
 	open (my $sh, $seqname) or die "Can't open file '$seqname";
 	my %annot = map { /(\S+)\s+(.+)/; $1 => $2 } <$sh>;
 	close $sh;
-	my $processedseq = "sequences_$fa.txt";
+	my $processedseq = "sequences_$qac.tab";
 	my $in = Bio::SeqIO->new( -file => $processedseq , -format => 'Fasta' );
 	while ( my $fa = $in->next_seq() ) {
-    	my $seqID = $annot{ $fa->id } // $fa->id;
-    	print $processedfile ">","$seqID\n" . $fa->seq . "\n";
-}
+    		my $seqID = $annot{ $fa->id } // $fa->id;
+    		print $processedfile ">","$seqID\n" . $fa->seq . "\n";
+		}
 	close $processedfile;	
-	my @uniq = "awk '/^>/{f=!d[\$1];d[\$1]=1}f' sequences_$fa.fasta > Processed_$fa.fasta";
-	system (@uniq); 
-}
-
+	my @uniq = "awk '/^>/{f=!d[\$1];d[\$1]=1}f' sequences_$qac.fasta > Processed_$qac.fasta";
+	my @repetidas = "fastagrep.pl -v NODE Processed_$qac.fasta > Uniques_$qac.fasta";
+	system (@uniq);
+	system (@repetidas);
 #Outputs and final answers----------------------------------------------------------------------------------
-	my @removecmd = "rm *.fa *.fai *.txt sequences_$fa.fasta contigs_$fa.tab names_$fa.tab";
+	my @removecmd = "rm *.fa *.txt sequences_$qac.* contigs_$qac.tab names_$qac.tab Processed_$qac.fasta";
 	system (@removecmd);
 }
 print "\n";
@@ -227,7 +219,7 @@ print "\n";
 foreach my $file ( glob ("*.fna") ) {
 my $fa = substr($file,0,-4);
 	foreach my $tag (@tag) {
-		rename ("Processed_$fa.fasta", "$tag$fa.fasta");
+		rename ("Uniques_$fa.fasta", "$tag$fa.fasta");
 print "The output of ", $fa,".fasta can be found in ",$tag,$fa,".fasta.\n";
 print "\n";
 print "The identity score is in ", $fa,".tab.\n";
