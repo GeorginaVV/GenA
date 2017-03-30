@@ -3,8 +3,7 @@ Script done for my thesis.
 
 Version 1.2
 This translates and compares assembled genomes in fasta format to the selected database.
-
-Each database has its own quick and direct script, that has blastp has default.
+Default is blastp, but you can use vsearch for a quicker search.
 
 
 #Databases
@@ -18,7 +17,7 @@ Each database has its own quick and direct script, that has blastp has default.
 
 
 #Installation
-Dependencies: blastp, prodigal, samtools, bioperl, vsearch.
+Dependencies: blastp, prodigal, bioperl, vsearch.
 
 Make sure you download the repository in Home.
 
