@@ -1,8 +1,4 @@
 #!/usr/bin/perl
-#GenA_Finder version 1.2
-# Author Gina Varela, Laboratorio de Genomica Microbiana, CIAD.
-# Dependencies: prodigal, blastp, samtools, vsearch (optional)
-
 use strict;
 use warnings;
 use Getopt::Std;
@@ -31,8 +27,8 @@ my @tag = ();
 
 #Selection of files--------------------------------------------------------------------------------------
 print "\n";
-print "This script needs a fasta file with the contigs of an assembled genome.\n";
-print "The script will annotate it, and compare it with the desired database.\n";
+print "This script uses fasta files with the contigs of an assembled genome.\n";
+print "This genome will be compared to the desired database.\n";
 print "\n";
 my @fastafiles = ();
 if ($file) {
@@ -44,26 +40,37 @@ if ($file) {
 	print "\n";
 }
 else {
+	foreach my $file ( glob ("*.fasta") ) {	
+			push @fastafiles, $file;
+	}
+	
+if (@fastafiles){
 	print "Make sure these are the fasta files you want to process.\n";
 	print "\n";
 	print "--------------------------------------\n";
-		foreach my $file ( glob ("*.fasta") ) {	
+		foreach my $file (@fastafiles) {	
 			print $file,"\n";
-			push @fastafiles, $file;
 }
 	print "--------------------------------------\n";
 	print "\n";
-	print "Are these the correct files? (y/n)\n";
+print "Are these the correct files? (y/n)\n";
 	my $response = <STDIN>;
 	  	if($response =~  /^[Y]?$/i) {
 			print "\n";
 			print "\n";
-} 
+		} 
 		elsif($response =~ /^[N]?$/i) {
 			print "\n";
 			print "Check your fasta files for errors.\n";
 			exit 0
-}}
+		}
+}
+else {
+	print "$HELP";
+	print "ERROR:\n";
+	print "	The script couldn't find fasta files to process\n";
+	exit 0}
+}
 #Selection of Database-----------------------------------------------------------------------------------
 my @pathtodb = ();
 my $pdb = ("$options{d}") if defined $options{d};
@@ -149,9 +156,11 @@ foreach my $files (@fastafiles) {
 	my @cmd = "prodigal -a $files.faa -d $files.fna -i $files -q > output.txt";
 	system(@cmd);
 	print "\n";
+	unlink "output.txt";
 	my $fa = substr($files,0,-6);
-		rename ("$files.faa", "$fa.faa") || die ("Error in renaming");
-		rename ("$files.fna", "$fa.fna") || die ("Error in renaming");
+	my @noderemover = "awk '/^>/{\$0=\">NODE_\"++i\"_contig\"}1' $files.fna > $fa.fna | awk '/^>/{\$0=\">NODE_\"++i\"_contig\"}1' $files.faa > $fa.faa";
+		system(@noderemover);
+		unlink "$files.fna","$files.faa";		
 }
 print "\n";
 print "Prodigal is done.\n";
@@ -170,58 +179,61 @@ foreach my $query (@proteinquery) {
 }}
 
 #Get the best query of the bunch ---------------------------------------------------------------------------
+print "\n";
 print "looking for the best matches of the query.\n";
 my @tabquery = ( glob ("*.fna") );
 foreach my $qa (@tabquery) {
-		my $qac = substr ($qa,0,-4);
-		my @sorteocmd = "awk '{print \$1, \$2, \$3}' $qac.tab | sort -k 3 -n -r -o sorted$qac";
+	my $qac = substr ($qa,0,-4);
+	my @sorteocmd = "awk '{print \$1, \$2, \$3}' $qac.tab | sort -k 3 -n -r -o sorted$qac";
 		system(@sorteocmd);
-		rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
-		my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
-	system(@eleccioncmd);
+	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
+	my @eleccioncmd = "sort -k 2,2 -u -o sorted$qac $qac.tab";
+		system(@eleccioncmd);
 	rename ("sorted$qac", "$qac.tab") || die ("Error in renaming");
 	my @contigcmd = "awk '{print \$1}' $qac.tab > contigs_$qac.tab | awk '{print \$1, \$2}' $qac.tab > names_$qac.tab"; 
-	system(@contigcmd);
+		system(@contigcmd);
+		print "\n";
 	print "looking for the nucleotide sequences in $qac fna file.\n";
 	my $filename = ("contigs_$qac.tab");
-	open (my $fh, $filename)
-	or die "Can't open file '$filename";
-		while (my $row = <$fh>) {
-			chomp $row;
-		my @cmd = "fastagrep.pl $row $qac.fna > $row.fa";
-			system(@cmd); }
-	my @processed = "touch sequences_$qac.tab | cat *.fa >> sequences_$qac.tab";
-		system(@processed);
-#Changing the Names in the Processed file------------------------------------------------------------------
+		open (my $fh, $filename)
+		or die "Can't open file '$filename";
+			while (my $row = <$fh>) {
+				chomp $row;
+				my @linesearch = "sed -n '/>$row/,/>/p' $qac.fna | wc -l > $row.txt";
+					system (@linesearch);
+				my $linename = ("$row.txt");
+				open (my $lh, $linename)
+				or die "Can't open file '$linename";
+					while (my $line = <$lh>) {
+						chomp $line;
+						my $numberoflines = ($line-2);	
+						my @sequences_search = "grep $row -A $numberoflines $qac.fna > $row.fa";
+							system(@sequences_search);
+						}
+				unlink "$row.txt";
+				}
+			my @processed = "touch sequences_$qac.tab | cat *.fa >> sequences_$qac.tab | rm *.fa";
+				system(@processed);
 	my $seqname = "names_$qac.tab";
-	open (my $processedfile, '>', "sequences_$qac.fasta");	
-	open (my $sh, $seqname) or die "Can't open file '$seqname";
-	my %annot = map { /(\S+)\s+(.+)/; $1 => $2 } <$sh>;
-	close $sh;
-	my $processedseq = "sequences_$qac.tab";
-	my $in = Bio::SeqIO->new( -file => $processedseq , -format => 'Fasta' );
-	while ( my $fa = $in->next_seq() ) {
-    		my $seqID = $annot{ $fa->id } // $fa->id;
-    		print $processedfile ">","$seqID\n" . $fa->seq . "\n";
+	open (my $sn, $seqname)
+	or die "Can't open file '$seqname";
+		while (my $row = <$sn>) {
+			chomp $row;
+			my ($node, $name) = split (/ /, $row);
+		my @renamer = "sed -i s/$node/$name/g sequences_$qac.tab";
+			system(@renamer);  
 		}
-	close $processedfile;	
-	my @uniq = "awk '/^>/{f=!d[\$1];d[\$1]=1}f' sequences_$qac.fasta > Processed_$qac.fasta";
-	my @repetidas = "fastagrep.pl -v NODE Processed_$qac.fasta > Uniques_$qac.fasta";
-	system (@uniq);
-	system (@repetidas);
-#Outputs and final answers----------------------------------------------------------------------------------
-	my @removecmd = "rm *.fa *.txt sequences_$qac.* contigs_$qac.tab names_$qac.tab Processed_$qac.fasta";
-	system (@removecmd);
-}
-print "\n";
-print "The script has compared the genomes to the desired database.\n";
-print "\n";
-foreach my $file ( glob ("*.fna") ) {
-my $fa = substr($file,0,-4);
+#Final Output.
 	foreach my $tag (@tag) {
-		rename ("Uniques_$fa.fasta", "$tag$fa.fasta");
-print "The output of ", $fa,".fasta can be found in ",$tag,$fa,".fasta.\n";
-print "\n";
-print "The identity score is in ", $fa,".tab.\n";
-print "\n";
-}}
+			
+			rename ("sequences_$qac.tab", "$tag$qac.fasta");
+			print "\n";
+			print "The output of ", $qac,".fasta can be found in ",$tag,$qac,".fasta.\n";
+			print "\n";
+			print "The Identity Score is in $qac.tab. \n" if not defined $options{v};
+			print "\n";
+			
+				}
+}
+my @delete = "rm names* contigs*";
+	system(@delete);  
