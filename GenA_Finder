@@ -3,11 +3,13 @@ use strict;
 use warnings;
 use Getopt::Std;
 
-#Options stuff-------------------------------------------------------------------------------------------
+#GenA_Finder 
+#Version 1.3
+#Dependencies: Prodigal, Blastp, Vsearch (optional)
+#Options-------------------------------------------------------------------------------------------
 
 my %options=();
 getopts("hq:vd:", \%options);
-
 my $HELP = ( 
 "USAGE
    script [-h] [-q FILENAME] [-v USE VSEARCH] [-d PATH TO DATABASE] \n
