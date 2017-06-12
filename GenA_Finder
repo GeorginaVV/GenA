@@ -102,7 +102,7 @@ else {
 			}
 		}
 	}
-	my @databases = ("Housekeeping genes according to Gil","Core Genome of the Vibrionaceae Family","Housekeeping genes of the Vibrionaceae Family","MLSA scheme");
+	my @databases = ("Housekeeping genes according to Gil","Housekeeping genes of the Vibrionaceae Family","MLSA scheme");
     	my $db = menu('Database Options', \@databases);
 print "\n";
 	if ($db eq "MLSA scheme"){
@@ -126,17 +126,6 @@ print "\n";
 		else{
 			print "The database: ", $db," has been chosen\n";
 			push @pathtodb, "~/GenA/HG/HG";
-		}
-	}
-	elsif ($db eq "Core Genome of the Vibrionaceae Family"){
-		push @tag, "CGV"; 
-		if ($search eq "vsearch"){
-			print "The database: ", $db," has been chosen\n";
-			push @pathtodb, "~/GenA/CoreGenes/CG_nucleotides";
-		}
-		else{
-			print "The database: ", $db," has been chosen\n";
-			push @pathtodb, "~/GenA/CoreGenes/CoreGenes";
 		}
 	}
 	elsif ($db eq "Housekeeping genes of the Vibrionaceae Family"){
