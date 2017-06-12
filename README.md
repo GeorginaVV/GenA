@@ -11,13 +11,11 @@ Default is blastp, but you can use vsearch for a quicker search.
   
   -Housekeeping Genes in the Vibrionaceae family.
   
-  -Core Genome of the Vibrionaceae family.
-  
   -MLSA scheme used for the Vibrionaceae family.
 
 
 #Installation
-Dependencies: blastp, prodigal, bioperl, vsearch.
+Dependencies: blastp, prodigal, vsearch (optional).
 
 Make sure you download the repository in Home.
 
