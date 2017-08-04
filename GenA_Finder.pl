@@ -250,5 +250,5 @@ foreach my $qa (@tabquery) {
 
     }
 }
-my @delete = "rm names* contigs* | mkdir Final_Output | mv FinalOutput_*.fasta Final_Output/";
+my @delete = "rm names* contigs* | mkdir Final_Output | mv FinalOutput_*.fasta Final_Output/ | mv *.tab Final_Output/";
 system(@delete);
