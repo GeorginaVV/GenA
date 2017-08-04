@@ -242,8 +242,7 @@ foreach my $qa (@tabquery) {
 
         rename( "sequences_$qac.tab", "FinalOutput_$tag$qac.fasta" );
         print "\n";
-        print "The output of ", $qac, ".fasta can be found in FinalOutput_",
-          $tag, $qac, ".fasta.\n";
+        print "The output of ", $qac, ".fasta can be found if the folder Final_Output\n",
         print "\n";
         print "The Identity Score is in $qac.tab. \n"
           if not defined $options{v};
