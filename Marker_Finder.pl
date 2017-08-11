@@ -82,6 +82,9 @@ BUSQUEDA:
 			print "REDOING\n";
 			 goto BUSQUEDA; 
 		}
+my @alltogethernow = "cat Markers_*.fasta >>> All_Markers.fasta";
+system(@alltogethernow);
+
 open (my $Genes, $idnames) 
 	or die "could not open filename";
 print "-----------------------------\n";
