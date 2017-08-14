@@ -43,9 +43,10 @@ foreach my $AlmostFinal (@GenIdQuery) {
 	unlink ("GenName1");
 
 #Looking for the genes in the FinalOutput file----------------------------------------------------------------
-my $idnames    = ( glob("GenNames") );
+my $idnames    = "GenNames";
 my @id         = ();
 my $searcherQuery = ();
+
 foreach my $FinalSequence (@GenIdQuery) {
 	my $FinalName = substr( $FinalSequence, 16, -6 );
 	print "Working with:	\n";
@@ -64,6 +65,7 @@ BUSQUEDA:
 	my @searcher = "touch number | grep '>' Ready_$FinalName.fasta > number"; system (@searcher);
 	my $numberfile = "number";
 	my $genecounter = (0);	
+
 	open (my $searcherQuery, $numberfile ) 
 	or die "Can't open file '$searcherQuery'";
 		$genecounter++ while <$searcherQuery>;
@@ -78,11 +80,13 @@ BUSQUEDA:
 			unlink ("AllTogether_$FinalName.fasta");	}
 	else { 
 			$genecounter = (0);
+			unlink ("Ready_$FinalName.fasta");
 			print "The script didn't look for the marker in the right way.\n";
 			print "REDOING\n";
 			 goto BUSQUEDA; 
 		}
-my @alltogethernow = "cat Markers_*.fasta >>> All_Markers.fasta";
+
+my @alltogethernow = "cat Markers_*.fasta > All_Markers.fasta";
 system(@alltogethernow);
 
 open (my $Genes, $idnames) 
@@ -93,5 +97,4 @@ print "The genes used are as follow:\n";
 		print $_;	}
 print "-----------------------------\n";
 close $idnames; }
-		
 
