@@ -11,9 +11,9 @@ print "\n";
 print "This part of the script will sort the genes in the Final Output file.\n";
 print "This may take a while.\n";
 print "\n";
+getopts( "hd:", \%options );
 my @GenIdQuery = ( glob("FinalOutput_*.fasta") );
 my $condition = 1000;
-
 #Looking for the minimum of genes-----------------------------------------------------------------------------
 my @MinimumGenes = ();
 foreach my $AlmostFinal (@GenIdQuery) {
@@ -43,7 +43,9 @@ foreach my $AlmostFinal (@GenIdQuery) {
 	unlink ("GenName1");
 
 #Looking for the genes in the FinalOutput file----------------------------------------------------------------
-my $idnames    = "GenNames";
+my $idnames    = ();
+$idnames = ("GenNames") if not defined $options{d};
+$idnames = ("options{d}")  if defined $options{d};
 my @id         = ();
 my $searcherQuery = ();
 
