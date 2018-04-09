@@ -24,6 +24,7 @@ The final output for each input fasta is a multifasta with the sequences in nucl
 
 
 # Marker_Finder.pl
+Version 1.2
 Marker_Finder sorts the possible markers, and gives it as an output file with the sequences in the same order. Marker_Finder.pl works with the output files of GenA_Finder.pl located in the active folder. It is imperative to make sure the needed files are in the respective folders. Use ($~/GenA/Marker_Finder.pl) to call this script (without a symbolic link). 
 
 Since it is possible that the files are different gene number, the script finds the minimum number of genes and finds them in each input fasta. This could take a while and multiple retries, but the script will only stop when is all finished correctly. 
